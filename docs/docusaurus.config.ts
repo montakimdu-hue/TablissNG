@@ -112,7 +112,7 @@ const config: Config = {
       { name: "theme-color", content: "#3498db" },
     ],
     navbar: {
-      title: "TablissNG",
+      title: "TablissNG Docs",
       logo: {
         alt: "TablissNG Logo",
         src: "img/icons/icon.svg",
