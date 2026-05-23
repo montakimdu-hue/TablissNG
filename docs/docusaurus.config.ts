@@ -5,7 +5,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: "TablissNG",
+  title: "TablissNG Docs",
   titleDelimiter: "·",
   tagline: "A beautiful, private, and customizable new tab page",
   favicon: "img/icons/icon.svg",
@@ -112,7 +112,7 @@ const config: Config = {
       { name: "theme-color", content: "#3498db" },
     ],
     navbar: {
-      title: "TablissNG Docs",
+      title: "TablissNG",
       logo: {
         alt: "TablissNG Logo",
         src: "img/icons/icon.svg",
