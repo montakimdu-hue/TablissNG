@@ -2,12 +2,17 @@ import {
   Board,
   Card,
   createList,
+  Label,
   List,
   TrelloBoardResponse,
   TrelloCardsResponse,
+  TrelloLabelsResponse,
   TrelloListResponse,
   TrelloSession,
 } from "../types";
+
+// TODO add pagination for boards and list fetches
+// Potentially infinite scroll
 
 // TODO add pagination for boards and list fetches
 // Potentially infinite scroll
@@ -79,8 +84,40 @@ export const getCards = async (
             id: card.id,
             name: card.name,
             position: card.pos,
-            labels: card.labels,
+            labels: card.labels.map(
+              (l) =>
+                ({
+                  id: l.id,
+                  colour: l.color,
+                  name: l.name,
+                }) as Label,
+            ),
           }) as Card,
+      ),
+  );
+};
+
+/**
+ * Fetch labels under a board owned by the authenticated user
+ * @param boardId
+ * @param session
+ * @returns
+ */
+export const getLabels = async (
+  boardId: string,
+  session: TrelloSession,
+): Promise<Label[] | null> => {
+  return await trelloFetch<TrelloLabelsResponse[], Label[]>(
+    `boards/${boardId}/labels`,
+    session,
+    (data) =>
+      data.map(
+        (label) =>
+          ({
+            id: label.id,
+            colour: label.color,
+            name: label.name,
+          }) as Label,
       ),
   );
 };
@@ -128,14 +165,28 @@ export const moveCardToList = async (
     }),
   });
 
-  return response.ok;
+  if (!response.ok) {
+    console.error("TRELLO moveCardToList: non-ok response from Trello", {
+      cardId,
+      listId,
+      insertIndex,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    throw new Error(
+      `Failed to move Trello card ${cardId} to list ${listId} (status ${response.status} ${response.statusText})`,
+    );
+  }
+
+  return true;
 };
 
 export const addCardToList = async (
   card: Card,
   listId: string,
   session: TrelloSession,
-) => {
+): Promise<string | null> => {
   const response = await fetch(`https://api.trello.com/1/cards`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -147,7 +198,12 @@ export const addCardToList = async (
       token: session.accessToken,
     }),
   });
-  return response.ok;
+
+  if (response.ok) {
+    const data = await response.json();
+    return data.id;
+  }
+  return null;
 };
 
 export const updateCardName = async (
@@ -180,4 +236,31 @@ export const deleteCard = async (
     }),
   });
   return response.ok;
+};
+
+export const addOrRemoveLabel = async (
+  cardId: string,
+  labelId: string,
+  operation: "ADD" | "REMOVE",
+  session: TrelloSession,
+): Promise<boolean> => {
+  let response;
+  switch (operation) {
+    case "ADD":
+      response = await fetch(
+        `https://api.trello.com/1/cards/${cardId}/idLabels?value=${labelId}&key=${TRELLO_API_KEY}&token=${session.accessToken}`,
+        {
+          method: "POST",
+        },
+      );
+      return response.ok;
+    case "REMOVE":
+      response = await fetch(
+        `https://api.trello.com/1/cards/${cardId}/idLabels/${labelId}?key=${TRELLO_API_KEY}&token=${session.accessToken}`,
+        {
+          method: "DELETE",
+        },
+      );
+      return response.ok;
+  }
 };
