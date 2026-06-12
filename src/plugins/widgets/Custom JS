@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "JavaScript Code",
+      "description": "Enter your JS code here."
+    },
+    "runOnLoad": {
+      "type": "boolean",
+      "title": "Run on Load",
+      "default": true
+    }
+  },
+  "required": ["code"]
+}
